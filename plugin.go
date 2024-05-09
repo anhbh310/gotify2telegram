@@ -22,7 +22,7 @@ func GetGotifyPluginInfo() plugin.Info {
 
 // Plugin is the plugin instance
 type Plugin struct {
-    msgHandler plugin.MessageHandler
+    msgHandler plugin.MessageHandler;
 }
 
 type GotifyMessage struct {
@@ -38,8 +38,11 @@ type Payload struct {
 	ChatID string `json:"chat_id"`
 	Text   string `json:"text"`
 }
+func (p *Plugin) check_websocket_connection() error {
+    return nil
+}
 
-func send_msg_to_telegram(chatid string, telegram_api_token string, msg string) {
+func (p *Plugin) send_msg_to_telegram(chatid string, telegram_api_token string, msg string) {
     data := Payload{
     // fill struct
         ChatID: chatid,
@@ -66,7 +69,7 @@ func send_msg_to_telegram(chatid string, telegram_api_token string, msg string) 
     defer resp.Body.Close()
 }
 
-func get_websocket_msg(url string, token string) {
+func (p *Plugin) get_websocket_msg(url string, token string) {
     chatid := os.Getenv("TELEGRAM_CHAT_ID")
     telegram_api_token := os.Getenv("TELEGRAM_API_TOKEN")
     ws, _, err := websocket.DefaultDialer.Dial(url + "/stream?token=" + token, nil)
@@ -81,23 +84,23 @@ func get_websocket_msg(url string, token string) {
         if err != nil {
             return
         }
-        send_msg_to_telegram(chatid, telegram_api_token, msg.Date + "\n" + msg.Title + "\n" + msg.Message)
+        p.send_msg_to_telegram(chatid, telegram_api_token, msg.Date + "\n" + msg.Title + "\n" + msg.Message)
     }
 }
 
 // SetMessageHandler implements plugin.Messenger
 // Invoked during initialization
-func (c *Plugin) SetMessageHandler(h plugin.MessageHandler) {
-    c.msgHandler = h
+func (p *Plugin) SetMessageHandler(h plugin.MessageHandler) {
+    p.msgHandler = h
 }
 
-func (c *Plugin) Enable() error {
-    go get_websocket_msg(os.Getenv("GOTIFY_HOST"), os.Getenv("GOTIFY_CLIENT_TOKEN"))
+func (p *Plugin) Enable() error {
+    go p.get_websocket_msg(os.Getenv("GOTIFY_HOST"), os.Getenv("GOTIFY_CLIENT_TOKEN"))
     return nil
 }
 
 // Disable implements plugin.Plugin
-func (c *Plugin) Disable() error {
+func (p *Plugin) Disable() error {
     return nil
 }
 
@@ -108,5 +111,7 @@ func NewGotifyPluginInstance(ctx plugin.UserContext) plugin.Plugin {
 
 func main() {
     // panic("this should be built as go plugin")
-    get_websocket_msg("ws://192.168.0.181", "C.sXcxokQ6Lbpm7")
+    // For testing
+    p := &Plugin{nil}
+    p.get_websocket_msg(os.Getenv("GOTIFY_HOST"), os.Getenv("GOTIFY_CLIENT_TOKEN"))
 }
