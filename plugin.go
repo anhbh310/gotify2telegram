@@ -15,9 +15,12 @@ import (
 // GetGotifyPluginInfo returns gotify plugin info
 func GetGotifyPluginInfo() plugin.Info {
 	return plugin.Info{
-		Name:       "Gotify 2 Telegram",
+        Version: "1.0",
+        Author: "Anh Bui",
+		Name: "Gotify 2 Telegram",
+        Description: "Telegram message fowarder for gotify",
 		ModulePath: "https://github.com/anhbh310/gotify2telegram",
-		Author:     "Anh Bui",
+
 	}
 }
 
@@ -26,7 +29,7 @@ type Plugin struct {
     ws *websocket.Conn;
     msgHandler plugin.MessageHandler;
     chatid string;
-    telegram_api_token string;
+    telegram_bot_token string;
     gotify_host string;
 }
 
@@ -57,7 +60,7 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
     }
     body := bytes.NewReader(payloadBytes)
     
-    req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_api_token +"/sendMessage", body)
+    req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_bot_token +"/sendMessage", body)
     if err != nil {
         fmt.Println("Create request false")
         return
@@ -87,7 +90,7 @@ func (p *Plugin) connect_websocket() {
 func (p *Plugin) get_websocket_msg(url string, token string) {
     p.gotify_host = url + "/stream?token=" + token
     p.chatid = os.Getenv("TELEGRAM_CHAT_ID")
-    p.telegram_api_token = os.Getenv("TELEGRAM_API_TOKEN")
+    p.telegram_bot_token = os.Getenv("TELEGRAM_BOT_TOKEN")
 
     go p.connect_websocket()
 
