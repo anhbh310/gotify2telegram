@@ -1,4 +1,4 @@
-# Telegram 2 Gotify
+# Gotify 2 Telegram
 This Gotify plugin forwards all recieved messages to Telegram through the Telegram bot.
 
 ## Prerequisite
