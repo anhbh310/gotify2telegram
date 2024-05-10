@@ -1,5 +1,5 @@
 # Gotify 2 Telegram
-This Gotify plugin forwards all recieved messages to Telegram through the Telegram bot.
+This Gotify plugin forwards all received messages to Telegram through the Telegram bot.
 
 ## Prerequisite
 - A Telegram bot, bot token, and chat ID from bot conversation. You can get that information by following this [blog](https://medium.com/linux-shots/setup-telegram-bot-to-get-alert-notifications-90be7da4444).
