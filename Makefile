@@ -1,5 +1,5 @@
 BUILDDIR=./build
-GOTIFY_VERSION=v2.4.0
+GOTIFY_VERSION=v2.5.0
 PLUGIN_NAME=telegram-plugin
 PLUGIN_ENTRY=plugin.go
 GO_VERSION=`cat $(BUILDDIR)/gotify-server-go-version`
@@ -7,6 +7,7 @@ DOCKER_BUILD_IMAGE=gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
 DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS" -buildmode=plugin 
+GOMOD_CAP=go run github.com/gotify/plugin-api/cmd/gomod-cap
 
 download-tools:
 	GO111MODULE=off go get -u github.com/gotify/plugin-api/cmd/gomod-cap
@@ -16,7 +17,7 @@ create-build-dir:
 
 update-go-mod: create-build-dir
 	wget -LO ${BUILDDIR}/gotify-server.mod https://raw.githubusercontent.com/gotify/server/${GOTIFY_VERSION}/go.mod
-	gomod-cap -from ${BUILDDIR}/gotify-server.mod -to go.mod
+	$(GOMOD_CAP) -from ${BUILDDIR}/gotify-server.mod -to go.mod
 	rm ${BUILDDIR}/gotify-server.mod || true
 	go mod tidy
 
