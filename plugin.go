@@ -48,31 +48,41 @@ type Payload struct {
 }
 
 func (p *Plugin) send_msg_to_telegram(msg string) {
-    data := Payload{
-    // Fill struct
-        ChatID: p.chatid,
-        Text: msg,
+    step_size := 4090
+    sending_message := ""
+    for i:=0; i<len(msg); i+=step_size {
+        if i+step_size < len(msg) {
+			sending_message = msg[i : i+step_size]
+		} else {
+			sending_message = msg[i:len(msg)]
+		}
+
+        data := Payload{
+        // Fill struct
+            ChatID: p.chatid,
+            Text: sending_message,
+        }
+        payloadBytes, err := json.Marshal(data)
+        if err != nil {
+            fmt.Println("Create json false")
+            return
+        }
+        body := bytes.NewReader(payloadBytes)
+        
+        req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_bot_token +"/sendMessage", body)
+        if err != nil {
+            fmt.Println("Create request false")
+            return
+        }
+        req.Header.Set("Content-Type", "application/json")
+        
+        resp, err := http.DefaultClient.Do(req)
+        if err != nil {
+            fmt.Printf("Send request false: %v\n", err)
+            return
+        }
+        defer resp.Body.Close()
     }
-    payloadBytes, err := json.Marshal(data)
-    if err != nil {
-        fmt.Println("Create json false")
-        return
-    }
-    body := bytes.NewReader(payloadBytes)
-    
-    req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_bot_token +"/sendMessage", body)
-    if err != nil {
-        fmt.Println("Create request false")
-        return
-    }
-    req.Header.Set("Content-Type", "application/json")
-    
-    resp, err := http.DefaultClient.Do(req)
-    if err != nil {
-        fmt.Printf("Send request false: %v\n", err)
-        return
-    }
-    defer resp.Body.Close()
 }
 
 func (p *Plugin) connect_websocket() {
