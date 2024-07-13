@@ -28,13 +28,21 @@ This Gotify plugin forwards all received messages to Telegram through the Telegr
 
     3. Follow instructions from step 2 in the shared object installation.
 
+## Troubleshooting
+1. When only the Gotify dashboard receives your message, but not Telegram:
+
+    If, when making the API call to get your bot's chat ID, no data is returned, you may need to change the bot's privacy settings.
+
+    - In the BotFather chat, list your created bots and select the respective bot for which you want to change the Group Privacy setting.
+    - Turn off the Group Privacy setting.
 
 ## Appendix
 Mandatory secrets.
 
 ```(shell)
-GOTIFY_HOST=ws://YOUR_GOTIFY_IP
-GOTIFY_CLIENT_TOKEN=YOUR_CLIENT_TOKEN
-TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID
-TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+GOTIFY_HOST=ws://YOUR_GOTIFY_IP (depending on your setup, "ws://localhost:80" will likely work by default)
+GOTIFY_CLIENT_TOKEN=YOUR_CLIENT_TOKEN (create a new Client in Gotify and use the Token from there, or you can use an existing client)
+TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID (conversation ID from the Telegram API call above)
+TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN (API token provided by BotFather)
 ```
+
