@@ -16,6 +16,8 @@ This Gotify plugin forwards all received messages to Telegram through the Telegr
 
     4. Restart gotify.
 
+    5. Config the plugin.
+
 * **Build from source**
 
     1. Change GOTIFY_VERSION in Makefile.
@@ -28,6 +30,36 @@ This Gotify plugin forwards all received messages to Telegram through the Telegr
 
     3. Follow instructions from step 2 in the shared object installation.
 
+## Configuration
+
+The configuration contains three keys: `clients`, `gotify_host` and `token`.
+
+### Clients
+
+The `clients` configuration key describes which client(channel?) we are going to listen on and which telegram channel (and topic optionally!) we are forwarding the message to.
+
+```yaml
+clients:
+  - app_id: "The Gotify App ID to be matched. use -1 for all-matching."
+    telegram:
+      chat_id: "ID of the telegram chat"
+      token: "The bot token"
+      thread_id: "Thread ID of the telegram topic. Leave it empty if we are not sending to a topic."
+  - app_id: "Maybe the second Gotify Client Token, yay!"
+    telegram:
+      chat_id: "ID of the telegram chat"
+      token: "The bot token"
+      thread_id: "Thread ID of the telegram topic. Leave it empty if we are not sending to a topic."
+```
+
+### Gotify Host
+
+The `gotify_host` configuration key should be set to `ws://YOUR_GOTIFY_IP` (depending on your setup, `ws://localhost:80` will likely work by default)
+
+### Token
+
+The `token` configuration key should be set to a valid token that can be created in the "Clients" tab.
+
 ## Troubleshooting
 1. When only the Gotify dashboard receives your message, but not Telegram:
 
@@ -35,14 +67,3 @@ This Gotify plugin forwards all received messages to Telegram through the Telegr
 
     - In the BotFather chat, list your created bots and select the respective bot for which you want to change the Group Privacy setting.
     - Turn off the Group Privacy setting.
-
-## Appendix
-Mandatory secrets.
-
-```(shell)
-GOTIFY_HOST=ws://YOUR_GOTIFY_IP (depending on your setup, "ws://localhost:80" will likely work by default)
-GOTIFY_CLIENT_TOKEN=YOUR_CLIENT_TOKEN (create a new Client in Gotify and use the Token from there, or you can use an existing client)
-TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID (conversation ID from the Telegram API call above)
-TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN (API token provided by BotFather)
-```
-
