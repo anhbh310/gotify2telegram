@@ -3,8 +3,10 @@ package main
 import (
     "bytes"
     "encoding/json"
+    "io"
     "fmt"
     "net/http"
+    "net/http/httputil"
     "os"
     "time"
 
@@ -50,6 +52,7 @@ type Payload struct {
 func (p *Plugin) send_msg_to_telegram(msg string) {
     step_size := 4090
     sending_message := ""
+
     for i:=0; i<len(msg); i+=step_size {
         if i+step_size < len(msg) {
 			sending_message = msg[i : i+step_size]
@@ -67,20 +70,43 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
             fmt.Println("Create json false")
             return
         }
-        body := bytes.NewReader(payloadBytes)
-        
+        body := bytes.NewBuffer(payloadBytes)
+        // For future debugging
+        backup_body := bytes.NewBuffer(body.Bytes())
+
         req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_bot_token +"/sendMessage", body)
         if err != nil {
             fmt.Println("Create request false")
             return
         }
         req.Header.Set("Content-Type", "application/json")
-        
+
         resp, err := http.DefaultClient.Do(req)
+
         if err != nil {
             fmt.Printf("Send request false: %v\n", err)
             return
         }
+        fmt.Println("HTTP request was sent successfully")
+
+        if resp.StatusCode == http.StatusOK {
+            fmt.Println("The message was forwarded successfully to Telegram")
+        } else {
+            // Log infor for debugging
+            fmt.Println("============== Request ==============")
+            pretty_print, err := httputil.DumpRequest(req, true)
+            if err != nil {
+                fmt.Printf("%v\n", err)
+            }
+            fmt.Printf(string(pretty_print))
+            fmt.Printf("%v\n", backup_body)
+
+            fmt.Println("============== Response ==============")
+            bodyBytes, err := io.ReadAll(resp.Body)
+            fmt.Printf("%v\n", string(bodyBytes))
+
+        }
+
         defer resp.Body.Close()
     }
 }
@@ -95,12 +121,15 @@ func (p *Plugin) connect_websocket() {
         fmt.Printf("Cannot connect to websocket: %v\n", err)
         time.Sleep(5)
     }
+    fmt.Println("WebSocket connected successfully, ready for forwarding")
 }
 
 func (p *Plugin) get_websocket_msg(url string, token string) {
     p.gotify_host = url + "/stream?token=" + token
     p.chatid = os.Getenv("TELEGRAM_CHAT_ID")
+    fmt.Printf("chatid: %v\n", p.chatid)
     p.telegram_bot_token = os.Getenv("TELEGRAM_BOT_TOKEN")
+    fmt.Printf("Bot token: %v\n", p.telegram_bot_token)
 
     go p.connect_websocket()
 
