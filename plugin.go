@@ -4,32 +4,32 @@ import (
     "bytes"
     "encoding/json"
     "io"
-    "fmt"
+    "log"
     "net/http"
     "net/http/httputil"
     "os"
     "time"
 
-	"github.com/gotify/plugin-api"
+    "github.com/gotify/plugin-api"
     "github.com/gorilla/websocket"
 )
 
 // GetGotifyPluginInfo returns gotify plugin info
 func GetGotifyPluginInfo() plugin.Info {
-	return plugin.Info{
-        Version: "1.0",
-        Author: "Anh Bui",
-		Name: "Gotify 2 Telegram",
-        Description: "Telegram message fowarder for gotify",
-		ModulePath: "https://github.com/anhbh310/gotify2telegram",
-
-	}
+    return plugin.Info{
+    Version: "1.0",
+    Author: "Anh Bui",
+    Name: "Gotify 2 Telegram",
+    Description: "Telegram message fowarder for gotify",
+        ModulePath: "https://github.com/anhbh310/gotify2telegram",
+    }
 }
 
 // Plugin is the plugin instance
 type Plugin struct {
     ws *websocket.Conn;
     msgHandler plugin.MessageHandler;
+    debugLogger *log.Logger;
     chatid string;
     telegram_bot_token string;
     gotify_host string;
@@ -45,8 +45,8 @@ type GotifyMessage struct {
 }
 
 type Payload struct {
-	ChatID string `json:"chat_id"`
-	Text   string `json:"text"`
+    ChatID string `json:"chat_id"`
+    Text   string `json:"text"`
 }
 
 func (p *Plugin) send_msg_to_telegram(msg string) {
@@ -67,7 +67,7 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
         }
         payloadBytes, err := json.Marshal(data)
         if err != nil {
-            fmt.Println("Create json false")
+            p.debugLogger.Println("Create json false")
             return
         }
         body := bytes.NewBuffer(payloadBytes)
@@ -76,7 +76,7 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
 
         req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_bot_token +"/sendMessage", body)
         if err != nil {
-            fmt.Println("Create request false")
+            p.debugLogger.Println("Create request false")
             return
         }
         req.Header.Set("Content-Type", "application/json")
@@ -84,26 +84,26 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
         resp, err := http.DefaultClient.Do(req)
 
         if err != nil {
-            fmt.Printf("Send request false: %v\n", err)
+            p.debugLogger.Printf("Send request false: %v\n", err)
             return
         }
-        fmt.Println("HTTP request was sent successfully")
+        p.debugLogger.Println("HTTP request was sent successfully")
 
         if resp.StatusCode == http.StatusOK {
-            fmt.Println("The message was forwarded successfully to Telegram")
+            p.debugLogger.Println("The message was forwarded successfully to Telegram")
         } else {
             // Log infor for debugging
-            fmt.Println("============== Request ==============")
+            p.debugLogger.Println("============== Request ==============")
             pretty_print, err := httputil.DumpRequest(req, true)
             if err != nil {
-                fmt.Printf("%v\n", err)
+                p.debugLogger.Printf("%v\n", err)
             }
-            fmt.Printf(string(pretty_print))
-            fmt.Printf("%v\n", backup_body)
+            p.debugLogger.Printf(string(pretty_print))
+            p.debugLogger.Printf("%v\n", backup_body)
 
-            fmt.Println("============== Response ==============")
+            p.debugLogger.Println("============== Response ==============")
             bodyBytes, err := io.ReadAll(resp.Body)
-            fmt.Printf("%v\n", string(bodyBytes))
+            p.debugLogger.Printf("%v\n", string(bodyBytes))
 
         }
 
@@ -118,18 +118,18 @@ func (p *Plugin) connect_websocket() {
             p.ws = ws
             break
         }
-        fmt.Printf("Cannot connect to websocket: %v\n", err)
+        p.debugLogger.Printf("Cannot connect to websocket: %v\n", err)
         time.Sleep(5)
     }
-    fmt.Println("WebSocket connected successfully, ready for forwarding")
+    p.debugLogger.Println("WebSocket connected successfully, ready for forwarding")
 }
 
 func (p *Plugin) get_websocket_msg(url string, token string) {
     p.gotify_host = url + "/stream?token=" + token
     p.chatid = os.Getenv("TELEGRAM_CHAT_ID")
-    fmt.Printf("chatid: %v\n", p.chatid)
+    p.debugLogger.Printf("chatid: %v\n", p.chatid)
     p.telegram_bot_token = os.Getenv("TELEGRAM_BOT_TOKEN")
-    fmt.Printf("Bot token: %v\n", p.telegram_bot_token)
+    p.debugLogger.Printf("Bot token: %v\n", p.telegram_bot_token)
 
     go p.connect_websocket()
 
@@ -141,7 +141,7 @@ func (p *Plugin) get_websocket_msg(url string, token string) {
         }
         err := p.ws.ReadJSON(msg)
         if err != nil {
-            fmt.Printf("Error while reading websocket: %v\n", err)
+            p.debugLogger.Printf("Error while reading websocket: %v\n", err)
             p.connect_websocket()
             continue
         }
@@ -152,6 +152,7 @@ func (p *Plugin) get_websocket_msg(url string, token string) {
 // SetMessageHandler implements plugin.Messenger
 // Invoked during initialization
 func (p *Plugin) SetMessageHandler(h plugin.MessageHandler) {
+    p.debugLogger = log.New(os.Stdout, "Gotify 2 Telegram: ", log.Lshortfile)
     p.msgHandler = h
 }
 
