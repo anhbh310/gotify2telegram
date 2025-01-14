@@ -17,66 +17,67 @@ import (
 // GetGotifyPluginInfo returns gotify plugin info
 func GetGotifyPluginInfo() plugin.Info {
     return plugin.Info{
-    Version: "1.0",
-    Author: "Anh Bui",
-    Name: "Gotify 2 Telegram",
-    Description: "Telegram message fowarder for gotify",
+        Version: "1.0",
+        Author: "Anh Bui",
+        Name: "Gotify 2 Telegram",
+        Description: "Telegram message fowarder for gotify",
         ModulePath: "https://github.com/anhbh310/gotify2telegram",
     }
 }
 
 // Plugin is the plugin instance
 type Plugin struct {
-    ws *websocket.Conn;
-    msgHandler plugin.MessageHandler;
-    debugLogger *log.Logger;
-    chatid string;
-    telegram_bot_token string;
-    gotify_host string;
+    ws               *websocket.Conn
+    msgHandler       plugin.MessageHandler
+    debugLogger      *log.Logger
+    chatid           string
+    telegram_bot_token string
+    gotify_host      string
 }
 
 type GotifyMessage struct {
-    Id uint32;
-    Appid uint32;
-    Message string;
-    Title string;
-    Priority uint32;
-    Date string;
+    Id       uint32
+    Appid    uint32
+    Message  string
+    Title    string
+    Priority uint32
+    Date     string
 }
 
 type Payload struct {
-    ChatID string `json:"chat_id"`
-    Text   string `json:"text"`
+    ChatID    string `json:"chat_id"`
+    Text      string `json:"text"`
+    ParseMode string `json:"parse_mode"`
 }
 
 func (p *Plugin) send_msg_to_telegram(msg string) {
     step_size := 4090
     sending_message := ""
 
-    for i:=0; i<len(msg); i+=step_size {
+    for i := 0; i < len(msg); i += step_size {
         if i+step_size < len(msg) {
-			sending_message = msg[i : i+step_size]
-		} else {
-			sending_message = msg[i:len(msg)]
-		}
+            sending_message = msg[i : i+step_size]
+        } else {
+            sending_message = msg[i:len(msg)]
+        }
 
         data := Payload{
-        // Fill struct
-            ChatID: p.chatid,
-            Text: sending_message,
+            ChatID:    p.chatid,
+            Text:      sending_message,
+            ParseMode: "Markdown",
         }
         payloadBytes, err := json.Marshal(data)
         if err != nil {
-            p.debugLogger.Println("Create json false")
+            p.debugLogger.Println("Create JSON failed")
             return
         }
         body := bytes.NewBuffer(payloadBytes)
         // For future debugging
         backup_body := bytes.NewBuffer(body.Bytes())
 
-        req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+ p.telegram_bot_token +"/sendMessage", body)
+        req, err := http.NewRequest("POST", "https://api.telegram.org/bot"+p.telegram_bot_token+"/sendMessage", body)
         if err != nil {
-            p.debugLogger.Println("Create request false")
+            p.debugLogger.Println("Create request failed")
             return
         }
         req.Header.Set("Content-Type", "application/json")
@@ -84,7 +85,7 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
         resp, err := http.DefaultClient.Do(req)
 
         if err != nil {
-            p.debugLogger.Printf("Send request false: %v\n", err)
+            p.debugLogger.Printf("Send request failed: %v\n", err)
             return
         }
         p.debugLogger.Println("HTTP request was sent successfully")
@@ -92,7 +93,7 @@ func (p *Plugin) send_msg_to_telegram(msg string) {
         if resp.StatusCode == http.StatusOK {
             p.debugLogger.Println("The message was forwarded successfully to Telegram")
         } else {
-            // Log infor for debugging
+            // Log info for debugging
             p.debugLogger.Println("============== Request ==============")
             pretty_print, err := httputil.DumpRequest(req, true)
             if err != nil {
