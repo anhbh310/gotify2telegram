@@ -1,5 +1,5 @@
 # Gotify 2 Telegram
-This Gotify plugin forwards all received messages to Telegram through the Telegram bot.
+This Gotify plugin forwards all received messages to Telegram through the Telegram bot with support for MarkdownV2 formatting.
 
 ## Prerequisite
 - A Telegram bot, bot token, and chat ID from bot conversation. You can get that information by following this [blog](https://medium.com/linux-shots/setup-telegram-bot-to-get-alert-notifications-90be7da4444).
@@ -35,6 +35,13 @@ This Gotify plugin forwards all received messages to Telegram through the Telegr
 
     - In the BotFather chat, list your created bots and select the respective bot for which you want to change the Group Privacy setting.
     - Turn off the Group Privacy setting.
+
+## Please note
+I am not a developer. In fact, the implementation for MarkdownV2 formatting support was entirely written by Claude AI (as ChatGPT was unable to figure it out). I have tested it and it works perfectly for my use case: forwarding notifications from my Proxmox instance to Telegram.
+
+The code properly handles large messages by intelligently splitting them while preserving MarkdownV2 formatting. It also splits messages at natural boundaries (such as newlines and words) whenever possible to avoid exceeding Telegram's message size limit. Each part of a split message is labeled with "(n/N)" at the top, making it easier to track the message parts. Additionally, the code includes a small delay between messages to prevent hitting Telegram's rate limits.
+
+I have built the plugin for Gotify V2.6.1 for AMD64, ARM7, and ARM64 platforms and added them as a release to this fork.
 
 ## Appendix
 Mandatory secrets.
