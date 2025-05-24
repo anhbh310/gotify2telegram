@@ -1,5 +1,5 @@
 BUILDDIR=./build
-GOTIFY_VERSION=v2.6.1
+GOTIFY_VERSION=v2.6.3
 PLUGIN_NAME=telegram-plugin
 PLUGIN_ENTRY=plugin.go
 GO_VERSION=`cat $(BUILDDIR)/gotify-server-go-version`
